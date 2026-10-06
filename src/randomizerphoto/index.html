@@ -110,6 +110,7 @@ function setProg(cls,title,pct){
 
 async function refresh(){
   const s=await api('/state');
+  if(s.dbg) $('hint').textContent = s.dbg;
   if(s.base){
     hasBase=true; count=s.count;
     $('fsub').textContent=s.name+" • "+s.count+" photo(s)";
