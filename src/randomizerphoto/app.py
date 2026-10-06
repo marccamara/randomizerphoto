@@ -20,7 +20,7 @@ from .processing import process_folder_advanced
 
 
 # ============================================================
-# PATHS
+# CONFIGURATION
 # ============================================================
 
 HERE = Path(__file__).parent
@@ -38,12 +38,12 @@ EXTS = (
 
 
 # ============================================================
-# GLOBAL STATE
+# ÉTAT GLOBAL
 # ============================================================
 
 STATE = {
     "base": None,
-    "dbg": "Application démarrée.",
+    "dbg": "Application prête.",
     "picking": False,
     "done": 0,
     "total": 0,
@@ -54,15 +54,7 @@ STATE = {
 
 
 # ============================================================
-# NATIVE REFERENCES
-# ============================================================
-#
-# IMPORTANT :
-# On garde ici des références fortes vers le picker et son
-# delegate.
-#
-# Cela évite qu'Objective-C/Python libère le delegate avant
-# que iOS ait eu le temps d'appeler le callback.
+# RÉFÉRENCES OBJECTIVE-C
 # ============================================================
 
 REFS = {
@@ -76,24 +68,29 @@ REFS = {
 # DEBUG
 # ============================================================
 
-def set_debug(message):
+def debug(message):
     """
-    Met à jour le message de diagnostic.
+    Met à jour le message de diagnostic
+    et l'affiche également dans les logs.
     """
 
-    try:
-        STATE["dbg"] = str(message)
-    except Exception:
-        pass
+    message = str(message)
+
+    STATE["dbg"] = message
+
+    print(
+        "[RandomizerPhoto]",
+        message,
+    )
 
 
 # ============================================================
-# SECURITY SCOPED RESOURCE
+# SECURITY SCOPE
 # ============================================================
 
 def stop_security_scope():
     """
-    Libère l'accès au dossier précédemment sélectionné.
+    Libère l'accès au dossier sélectionné.
     """
 
     url = REFS.get("security_url")
@@ -103,13 +100,17 @@ def stop_security_scope():
 
     try:
         url.stopAccessingSecurityScopedResource()
+
         print(
-            "[RandomizerPhoto] Security scope libéré."
+            "[RandomizerPhoto] "
+            "Security scope libéré."
         )
+
     except Exception as e:
+
         print(
-            "[RandomizerPhoto] Impossible de libérer "
-            "le security scope :",
+            "[RandomizerPhoto] "
+            "Erreur libération security scope:",
             e,
         )
 
@@ -117,157 +118,344 @@ def stop_security_scope():
 
 
 # ============================================================
-# DOCUMENT PICKER DELEGATE
+# PROTOCOLE UIDOCUMENTPICKERDELEGATE
 # ============================================================
 
-try:
-    UIDocumentPickerDelegate = ObjCProtocol(
-        "UIDocumentPickerDelegate"
-    )
-except Exception:
-    UIDocumentPickerDelegate = None
-
-
-if UIDocumentPickerDelegate is not None:
-
-    class PickerDelegate(
-        NSObject,
-        protocols=[UIDocumentPickerDelegate],
-    ):
-        pass
-
-else:
-
-    class PickerDelegate(
-        NSObject,
-    ):
-        pass
+UIDocumentPickerDelegate = ObjCProtocol(
+    "UIDocumentPickerDelegate"
+)
 
 
 # ============================================================
-# CALLBACK : DOSSIER SÉLECTIONNÉ
+# DELEGATE
 # ============================================================
 
-@objc_method
-def _document_picker_did_pick(
-    self,
-    picker,
-    urls,
+class PickerDelegate(
+    NSObject,
+    protocols=[UIDocumentPickerDelegate],
 ):
-    """
-    Callback Objective-C :
 
-        documentPicker:didPickDocumentsAtURLs:
+    # ========================================================
+    # iOS 11+
+    #
+    # Objective-C :
+    #
+    # documentPicker:didPickDocumentsAtURLs:
+    #
+    # Rubicon :
+    #
+    # documentPicker_didPickDocumentsAtURLs_
+    # ========================================================
 
-    C'est LE callback que nous voulons tester.
-    """
-
-    try:
+    @objc_method
+    def documentPicker_didPickDocumentsAtURLs_(
+        self,
+        picker,
+        urls,
+    ):
 
         print("")
-        print("========================================")
-        print("📁 CALLBACK DOCUMENT PICKER REÇU")
-        print("========================================")
+        print("==========================================")
+        print("📁 CALLBACK iOS MODERNE REÇU")
+        print("==========================================")
 
-        STATE["picking"] = False
-        STATE["error"] = None
+        try:
 
-        set_debug(
-            "CALLBACK REÇU par Python."
-        )
+            STATE["picking"] = False
+            STATE["error"] = None
 
-        # ----------------------------------------------------
-        # Vérifier les URLs
-        # ----------------------------------------------------
+            debug(
+                "✅ CALLBACK REÇU : "
+                "documentPicker:didPickDocumentsAtURLs:"
+            )
 
-        if not urls:
+            # ------------------------------------------------
+            # Vérification
+            # ------------------------------------------------
+
+            if not urls:
+
+                STATE["base"] = None
+
+                debug(
+                    "⚠️ Callback reçu mais "
+                    "iOS a retourné 0 URL."
+                )
+
+                return
 
             print(
-                "❌ iOS a retourné 0 URL."
+                "Nombre d'URL :",
+                len(urls),
             )
 
-            set_debug(
-                "CALLBACK REÇU MAIS 0 URL."
+            # Une seule sélection autorisée
+            url = urls[0]
+
+            print(
+                "NSURL reçue :",
+                url,
             )
+
+            debug(
+                "URL reçue : " + str(url)
+            )
+
+            # ------------------------------------------------
+            # Ancien security scope
+            # ------------------------------------------------
+
+            stop_security_scope()
+
+            # ------------------------------------------------
+            # Garder l'NSURL en vie
+            # ------------------------------------------------
+
+            REFS["security_url"] = url
+
+            # ------------------------------------------------
+            # Security-scoped access
+            # ------------------------------------------------
+
+            try:
+
+                access = (
+                    url.startAccessingSecurityScopedResource()
+                )
+
+                print(
+                    "startAccessingSecurityScopedResource:",
+                    access,
+                )
+
+            except Exception as e:
+
+                print(
+                    "Erreur security scope:",
+                    e,
+                )
+
+            # ------------------------------------------------
+            # Récupérer le PATH
+            # ------------------------------------------------
+
+            try:
+
+                path = url.path
+
+                if callable(path):
+                    path = path()
+
+                path = str(path)
+
+            except Exception as e:
+
+                STATE["base"] = None
+
+                debug(
+                    "❌ Impossible de récupérer "
+                    "url.path : " + str(e)
+                )
+
+                return
+
+            print(
+                "PATH :",
+                path,
+            )
+
+            # ------------------------------------------------
+            # Vérifier Path
+            # ------------------------------------------------
+
+            base = Path(path)
+
+            if not base.exists():
+
+                STATE["base"] = None
+
+                debug(
+                    "❌ Le dossier n'existe pas : "
+                    + str(base)
+                )
+
+                return
+
+            if not base.is_dir():
+
+                STATE["base"] = None
+
+                debug(
+                    "❌ L'élément sélectionné "
+                    "n'est pas un dossier."
+                )
+
+                return
+
+            # ------------------------------------------------
+            # COMPTER LES IMAGES
+            # ------------------------------------------------
+
+            try:
+
+                count = sum(
+                    1
+                    for f in base.iterdir()
+                    if f.suffix.lower() in EXTS
+                )
+
+            except Exception:
+
+                count = 0
+
+            # ------------------------------------------------
+            # SUCCÈS
+            # ------------------------------------------------
+
+            STATE["base"] = str(base)
+
+            STATE["error"] = None
+
+            debug(
+                "✅ DOSSIER SÉLECTIONNÉ : "
+                + str(base)
+                + " | "
+                + str(count)
+                + " images"
+            )
+
+            print("")
+            print("==========================================")
+            print("✅ SUCCÈS")
+            print("DOSSIER :", base)
+            print("IMAGES  :", count)
+            print("==========================================")
+            print("")
+
+        except Exception:
 
             STATE["base"] = None
 
-            return
+            STATE["picking"] = False
 
-        print(
-            "Nombre d'URL :",
-            len(urls),
-        )
+            STATE["error"] = (
+                "Erreur dans le callback."
+            )
 
-        # Comme allowsMultipleSelection = False,
-        # nous utilisons la première.
-        url = urls[0]
-
-        print(
-            "URL native :",
-            url,
-        )
-
-        set_debug(
-            "URL reçue : " + str(url)
-        )
-
-        # ----------------------------------------------------
-        # Libérer ancien security scope
-        # ----------------------------------------------------
-
-        stop_security_scope()
-
-        # ----------------------------------------------------
-        # Conserver l'URL native
-        # ----------------------------------------------------
-
-        REFS["security_url"] = url
-
-        # ----------------------------------------------------
-        # Security scoped access
-        # ----------------------------------------------------
-
-        try:
-
-            access = (
-                url.startAccessingSecurityScopedResource()
+            STATE["dbg"] = (
+                "❌ ERREUR CALLBACK\n\n"
+                + traceback.format_exc()[-2000:]
             )
 
             print(
-                "Security scope :",
-                access,
+                traceback.format_exc()
             )
 
-            if access:
 
-                set_debug(
-                    "URL reçue + accès sécurisé OK."
-                )
+    # ========================================================
+    # ANCIEN CALLBACK
+    #
+    # iOS plus ancien :
+    #
+    # documentPicker:didPickDocumentAtURL:
+    # ========================================================
 
-            else:
+    @objc_method
+    def documentPicker_didPickDocumentAtURL_(
+        self,
+        picker,
+        url,
+    ):
 
-                set_debug(
-                    "URL reçue mais accès sécurisé = False."
-                )
-
-        except Exception as e:
-
-            print(
-                "❌ Erreur security scope :",
-                e,
-            )
-
-            set_debug(
-                "ERREUR security scope : "
-                + str(e)
-            )
-
-        # ----------------------------------------------------
-        # Récupérer le chemin
-        # ----------------------------------------------------
+        print("")
+        print("==========================================")
+        print("📁 ANCIEN CALLBACK REÇU")
+        print("==========================================")
 
         try:
+
+            STATE["picking"] = False
+
+            if url is None:
+
+                STATE["base"] = None
+
+                debug(
+                    "⚠️ Ancien callback sans URL."
+                )
+
+                return
+
+            # Transformer en traitement identique
+            # au callback moderne.
+
+            self._process_selected_url(
+                url
+            )
+
+        except Exception:
+
+            STATE["base"] = None
+
+            STATE["error"] = (
+                "Erreur ancien callback."
+            )
+
+            STATE["dbg"] = (
+                "❌ ERREUR ANCIEN CALLBACK\n\n"
+                + traceback.format_exc()[-2000:]
+            )
+
+            print(
+                traceback.format_exc()
+            )
+
+
+    # ========================================================
+    # TRAITEMENT COMMUN D'UNE URL
+    # ========================================================
+
+    def _process_selected_url(
+        self,
+        url,
+    ):
+
+        try:
+
+            print(
+                "URL reçue :",
+                url,
+            )
+
+            stop_security_scope()
+
+            REFS["security_url"] = url
+
+            # ----------------------------------------------
+            # Security scope
+            # ----------------------------------------------
+
+            try:
+
+                access = (
+                    url.startAccessingSecurityScopedResource()
+                )
+
+                print(
+                    "Security scope:",
+                    access,
+                )
+
+            except Exception as e:
+
+                print(
+                    "Security scope erreur:",
+                    e,
+                )
+
+            # ----------------------------------------------
+            # Path
+            # ----------------------------------------------
 
             path = url.path
 
@@ -276,197 +464,116 @@ def _document_picker_did_pick(
 
             path = str(path)
 
+            base = Path(path)
+
+            # ----------------------------------------------
+            # Vérifications
+            # ----------------------------------------------
+
+            if not base.exists():
+
+                STATE["base"] = None
+
+                debug(
+                    "❌ Dossier inexistant : "
+                    + str(base)
+                )
+
+                return
+
+            if not base.is_dir():
+
+                STATE["base"] = None
+
+                debug(
+                    "❌ Ce n'est pas un dossier."
+                )
+
+                return
+
+            # ----------------------------------------------
+            # Images
+            # ----------------------------------------------
+
+            try:
+
+                count = sum(
+                    1
+                    for f in base.iterdir()
+                    if f.suffix.lower() in EXTS
+                )
+
+            except Exception:
+
+                count = 0
+
+            # ----------------------------------------------
+            # OK
+            # ----------------------------------------------
+
+            STATE["base"] = str(base)
+
+            STATE["error"] = None
+
+            debug(
+                "✅ DOSSIER OK : "
+                + str(base)
+                + " | Images : "
+                + str(count)
+            )
+
         except Exception:
 
-            path = None
-
-        print(
-            "PATH :",
-            path,
-        )
-
-        if not path:
-
             STATE["base"] = None
 
             STATE["error"] = (
-                "Impossible de récupérer "
-                "le chemin du dossier."
+                "Erreur traitement URL."
             )
 
-            set_debug(
-                "❌ URL reçue mais path introuvable."
+            STATE["dbg"] = (
+                "❌ ERREUR URL\n\n"
+                + traceback.format_exc()[-2000:]
             )
 
-            return
-
-        # ----------------------------------------------------
-        # Pathlib
-        # ----------------------------------------------------
-
-        base = Path(path)
-
-        # ----------------------------------------------------
-        # Vérification existence
-        # ----------------------------------------------------
-
-        if not base.exists():
-
-            STATE["base"] = None
-
-            STATE["error"] = (
-                "Le dossier sélectionné "
-                "n'existe pas."
+            print(
+                traceback.format_exc()
             )
 
-            set_debug(
-                "❌ Dossier inexistant : "
-                + str(base)
-            )
 
-            return
+    # ========================================================
+    # ANNULATION
+    # ========================================================
 
-        # ----------------------------------------------------
-        # Vérification dossier
-        # ----------------------------------------------------
+    @objc_method
+    def documentPickerWasCancelled_(
+        self,
+        picker,
+    ):
 
-        if not base.is_dir():
-
-            STATE["base"] = None
-
-            STATE["error"] = (
-                "L'élément sélectionné "
-                "n'est pas un dossier."
-            )
-
-            set_debug(
-                "❌ L'élément n'est pas un dossier."
-            )
-
-            return
-
-        # ----------------------------------------------------
-        # SUCCÈS
-        # ----------------------------------------------------
-
-        STATE["base"] = str(base)
+        STATE["picking"] = False
 
         STATE["error"] = None
 
-        try:
-
-            count = sum(
-                1
-                for f in base.iterdir()
-                if f.suffix.lower() in EXTS
-            )
-
-        except Exception:
-
-            count = 0
-
-        STATE["dbg"] = (
-            "✅ DOSSIER SÉLECTIONNÉ : "
-            + str(base)
-            + " | Images : "
-            + str(count)
+        debug(
+            "Sélection du dossier annulée."
         )
 
-        print("")
-        print("========================================")
-        print("✅ DOSSIER SÉLECTIONNÉ")
-        print("========================================")
-        print("PATH :", base)
-        print("IMAGES :", count)
-        print("========================================")
-        print("")
-
-    except Exception:
-
-        STATE["base"] = None
-
-        STATE["picking"] = False
-
-        STATE["error"] = (
-            "Erreur dans le callback du picker."
-        )
-
-        STATE["dbg"] = (
-            "❌ EXCEPTION CALLBACK\n\n"
-            + traceback.format_exc()[-1500:]
-        )
-
-        print("")
         print(
-            traceback.format_exc()
+            "[RandomizerPhoto] "
+            "Picker annulé."
         )
-        print("")
-
-    finally:
-
-        STATE["picking"] = False
 
 
 # ============================================================
-# CALLBACK : ANNULATION
-# ============================================================
-
-@objc_method
-def _document_picker_cancelled(
-    self,
-    picker,
-):
-    """
-    Callback Objective-C :
-
-        documentPickerWasCancelled:
-    """
-
-    STATE["picking"] = False
-
-    STATE["error"] = None
-
-    STATE["dbg"] = (
-        "Sélection du dossier annulée."
-    )
-
-    print(
-        "[RandomizerPhoto] Picker annulé."
-    )
-
-
-# ============================================================
-# ATTACHER LES MÉTHODES AU DELEGATE
-# ============================================================
-
-PickerDelegate.documentPicker_didPickDocumentsAtURLs_ = (
-    _document_picker_did_pick
-)
-
-PickerDelegate.documentPickerWasCancelled_ = (
-    _document_picker_cancelled
-)
-
-
-# ============================================================
-# CREATE FOLDER PICKER
+# CRÉATION DU PICKER
 # ============================================================
 
 def create_folder_picker():
-    """
-    Crée le UIDocumentPicker configuré pour les dossiers.
-
-    Pour notre test nous utilisons volontairement l'API
-    moderne iOS.
-
-    Le type public.folder signifie :
-        "je veux sélectionner un dossier"
-    """
 
     print("")
-    print("========================================")
-    print("📂 CRÉATION DU FOLDER PICKER")
-    print("========================================")
+    print("==========================================")
+    print("📂 CRÉATION DU PICKER")
+    print("==========================================")
 
     Picker = ObjCClass(
         "UIDocumentPickerViewController"
@@ -477,7 +584,7 @@ def create_folder_picker():
     )
 
     # --------------------------------------------------------
-    # UTType.folder
+    # public.folder
     # --------------------------------------------------------
 
     try:
@@ -490,7 +597,6 @@ def create_folder_picker():
 
     except Exception:
 
-        # Fallback Rubicon
         folder_type = (
             UTType.typeWithIdentifier(
                 "public.folder"
@@ -504,21 +610,11 @@ def create_folder_picker():
         )
 
     print(
-        "UTType.folder OK"
+        "UTType public.folder : OK"
     )
 
     # --------------------------------------------------------
     # API moderne
-    # --------------------------------------------------------
-    #
-    # Objective-C :
-    #
-    # initForOpeningContentTypes:asCopy:
-    #
-    # Python/Rubicon :
-    #
-    # initForOpeningContentTypes_asCopy_
-    #
     # --------------------------------------------------------
 
     try:
@@ -531,16 +627,17 @@ def create_folder_picker():
             )
         )
 
+        print(
+            "API utilisée : "
+            "initForOpeningContentTypes:asCopy:"
+        )
+
     except Exception as e:
 
         print(
-            "API moderne asCopy échouée :",
+            "API asCopy indisponible :",
             e,
         )
-
-        # ----------------------------------------------------
-        # Fallback moderne sans asCopy
-        # ----------------------------------------------------
 
         picker = (
             Picker.alloc()
@@ -549,47 +646,44 @@ def create_folder_picker():
             )
         )
 
+        print(
+            "API utilisée : "
+            "initForOpeningContentTypes:"
+        )
+
     if picker is None:
 
         raise RuntimeError(
-            "UIDocumentPickerViewController "
-            "n'a pas pu être créé."
+            "Impossible de créer le picker."
         )
-
-    print(
-        "✅ UIDocumentPicker créé."
-    )
 
     return picker
 
 
 # ============================================================
-# PRESENT PICKER
+# PRÉSENTER LE PICKER
 # ============================================================
 
 def present_picker(app):
-    """
-    Présente le UIDocumentPicker depuis le ViewController
-    principal de Toga.
-    """
 
     try:
 
         STATE["picking"] = True
+
         STATE["error"] = None
 
-        set_debug(
+        debug(
             "Création du sélecteur de dossier..."
         )
 
         # ----------------------------------------------------
-        # Créer picker
+        # Picker
         # ----------------------------------------------------
 
         picker = create_folder_picker()
 
         # ----------------------------------------------------
-        # Créer delegate
+        # Delegate
         # ----------------------------------------------------
 
         delegate = (
@@ -599,12 +693,14 @@ def present_picker(app):
         if delegate is None:
 
             raise RuntimeError(
-                "Impossible de créer "
-                "PickerDelegate."
+                "Impossible de créer PickerDelegate."
             )
 
         # ----------------------------------------------------
-        # CONSERVER LES RÉFÉRENCES
+        # IMPORTANT
+        # ----------------------------------------------------
+        #
+        # Garder les références très fortement.
         # ----------------------------------------------------
 
         REFS["picker"] = picker
@@ -612,34 +708,34 @@ def present_picker(app):
         REFS["delegate"] = delegate
 
         # ----------------------------------------------------
-        # Delegate
+        # Affecter delegate
         # ----------------------------------------------------
 
         picker.delegate = delegate
 
-        # Un seul dossier
         picker.allowsMultipleSelection = False
 
         print(
-            "Delegate attaché."
+            "Delegate :",
+            picker.delegate,
         )
 
         # ----------------------------------------------------
-        # Récupérer fenêtre native Toga
+        # Fenêtre native Toga
         # ----------------------------------------------------
 
-        native_window = (
+        native = (
             app.main_window
             ._impl
             .native
         )
 
         window = ObjCInstance(
-            native_window
+            native
         )
 
         # ----------------------------------------------------
-        # Root ViewController
+        # Root VC
         # ----------------------------------------------------
 
         root = (
@@ -653,7 +749,8 @@ def present_picker(app):
             )
 
         print(
-            "Root ViewController OK."
+            "Root VC :",
+            root,
         )
 
         # ----------------------------------------------------
@@ -666,18 +763,19 @@ def present_picker(app):
             completion=None,
         )
 
-        print(
-            "✅ PICKER AFFICHÉ."
+        debug(
+            "📂 Picker ouvert. "
+            "Entre dans ton dossier puis appuie sur Ouvrir."
         )
 
         print(
-            "➡️ Entre dans le dossier puis appuie "
-            "sur Ouvrir."
+            "=========================================="
         )
-
-        set_debug(
-            "Picker ouvert. "
-            "Entre dans le dossier puis appuie sur « Ouvrir »."
+        print(
+            "✅ PICKER AFFICHÉ"
+        )
+        print(
+            "=========================================="
         )
 
     except Exception:
@@ -685,24 +783,21 @@ def present_picker(app):
         STATE["picking"] = False
 
         STATE["error"] = (
-            "Impossible d'ouvrir "
-            "le sélecteur de dossier."
+            "Erreur ouverture picker."
         )
 
         STATE["dbg"] = (
             "❌ ERREUR PICKER\n\n"
-            + traceback.format_exc()[-1500:]
+            + traceback.format_exc()[-2000:]
         )
 
-        print("")
         print(
             traceback.format_exc()
         )
-        print("")
 
 
 # ============================================================
-# COUNT IMAGES
+# COMPTER LES IMAGES
 # ============================================================
 
 def count_images(base):
@@ -724,19 +819,20 @@ def count_images(base):
 
 
 # ============================================================
-# PROGRESS
+# PROGRESSION
 # ============================================================
 
-def progress(done, total):
+def progress(
+    done,
+    total,
+):
 
-    STATE.update(
-        done=done,
-        total=total,
-    )
+    STATE["done"] = done
+    STATE["total"] = total
 
 
 # ============================================================
-# RUN PROCESSING
+# TRAITEMENT
 # ============================================================
 
 def run_processing(
@@ -744,19 +840,13 @@ def run_processing(
     model,
 ):
 
-    STATE.update(
-        done=0,
-        total=0,
-        running=True,
-        finished=False,
-        error=None,
-    )
+    STATE["done"] = 0
+    STATE["total"] = 0
+    STATE["running"] = True
+    STATE["finished"] = False
+    STATE["error"] = None
 
     try:
-
-        # ----------------------------------------------------
-        # Vérification dossier
-        # ----------------------------------------------------
 
         if not STATE["base"]:
 
@@ -771,8 +861,7 @@ def run_processing(
         if not base.exists():
 
             raise RuntimeError(
-                "Le dossier sélectionné "
-                "n'est plus accessible."
+                "Le dossier n'est plus accessible."
             )
 
         if not base.is_dir():
@@ -796,18 +885,12 @@ def run_processing(
         )
 
         # ----------------------------------------------------
-        # Processing
+        # Traitement
         # ----------------------------------------------------
 
-        print("")
-        print("========================================")
-        print("🚀 TRAITEMENT")
-        print("========================================")
-        print("SOURCE :", base)
-        print("OUTPUT :", out)
-        print("MODEL  :", model)
-        print("N      :", n)
-        print("========================================")
+        debug(
+            "Traitement en cours..."
+        )
 
         process_folder_advanced(
             str(base),
@@ -818,37 +901,30 @@ def run_processing(
             model,
         )
 
+        debug(
+            "✅ Traitement terminé."
+        )
+
     except Exception as e:
 
         STATE["error"] = str(e)
 
         STATE["dbg"] = (
             "❌ ERREUR TRAITEMENT\n\n"
-            + traceback.format_exc()[-1500:]
+            + traceback.format_exc()[-2000:]
         )
 
-        print("")
         print(
             traceback.format_exc()
         )
-        print("")
 
     finally:
 
-        STATE.update(
-            running=False,
-            finished=True,
-        )
+        STATE["running"] = False
+        STATE["finished"] = True
 
-        # ----------------------------------------------------
-        # Libérer security scope
-        # ----------------------------------------------------
-
+        # Le traitement est terminé.
         stop_security_scope()
-
-        # ----------------------------------------------------
-        # Libérer références picker
-        # ----------------------------------------------------
 
         REFS["picker"] = None
         REFS["delegate"] = None
@@ -864,10 +940,6 @@ def make_handler(app):
         BaseHTTPRequestHandler
     ):
 
-        # ----------------------------------------------------
-        # Pas de logs HTTP
-        # ----------------------------------------------------
-
         def log_message(
             self,
             *args,
@@ -876,7 +948,7 @@ def make_handler(app):
 
 
         # ----------------------------------------------------
-        # SEND
+        # JSON
         # ----------------------------------------------------
 
         def send_json(
@@ -1062,13 +1134,11 @@ def make_handler(app):
 
                 STATE["error"] = None
 
-                set_debug(
-                    "Demande de sélection du dossier..."
+                debug(
+                    "Demande de sélection..."
                 )
 
-                # IMPORTANT :
-                # UIKit doit être manipulé sur le thread
-                # principal.
+                # UIKit sur le thread principal.
                 app.loop.call_soon_threadsafe(
                     present_picker,
                     app,
@@ -1169,7 +1239,7 @@ class RandomizerPhoto(
         )
 
         # ----------------------------------------------------
-        # Local HTTP server
+        # Serveur HTTP local
         # ----------------------------------------------------
 
         server = ThreadingHTTPServer(
@@ -1192,12 +1262,13 @@ class RandomizerPhoto(
         )
 
         print(
-            "[RandomizerPhoto] HTTP server :",
+            "[RandomizerPhoto] "
+            "Serveur HTTP :",
             port,
         )
 
         # ----------------------------------------------------
-        # Toga window
+        # Fenêtre
         # ----------------------------------------------------
 
         self.main_window = (
@@ -1222,18 +1293,19 @@ class RandomizerPhoto(
         )
 
         # ----------------------------------------------------
-        # Show
+        # Affichage
         # ----------------------------------------------------
 
         self.main_window.show()
 
         print(
-            "[RandomizerPhoto] Application prête."
+            "[RandomizerPhoto] "
+            "Application prête."
         )
 
 
 # ============================================================
-# ENTRY POINT
+# MAIN
 # ============================================================
 
 def main():
