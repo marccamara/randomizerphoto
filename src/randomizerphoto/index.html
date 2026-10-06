@@ -1,153 +1,1341 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1,
+               viewport-fit=cover,
+               user-scalable=no">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Randomizer Pro">
+
+<meta name="theme-color" content="#090909">
+
+<title>Randomizer Pro</title>
+
 <style>
-:root{--bg1:#121212;--bg2:#181818;--a1:#f59e0b;--a2:#d97706;--ok:#22c55e;
-  --glass:#1e1e1e;--stroke:#333333;--muted:#9ca3af}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;min-height:100vh;color:#fff;
-  font-family:-apple-system,"SF Pro Display",Helvetica,sans-serif;
-  background:radial-gradient(circle at 20% 0%,rgba(245,158,11,.08),transparent 55%),
-             linear-gradient(170deg,var(--bg2),var(--bg1) 60%);
-  background-attachment:fixed;
-  padding:calc(env(safe-area-inset-top) + 26px) 20px calc(env(safe-area-inset-bottom) + 30px)}
-h1{margin:0;text-align:center;font-size:30px;font-weight:800;letter-spacing:-.5px}
-h1 span{color:var(--a1)}
-.sub{text-align:center;color:var(--muted);font:12px ui-monospace,Menlo,monospace;margin:8px 0 26px;letter-spacing:.5px}
-.label{color:var(--a1);font-size:12px;font-weight:700;letter-spacing:1.2px;margin:0 0 10px 4px}
-.card{position:relative;display:flex;align-items:center;gap:14px;width:100%;padding:16px 18px;margin-bottom:12px;
-  background:var(--glass);border:1px solid var(--stroke);border-radius:20px;color:#fff;text-align:left;font-size:16px;
-  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
-.card .ic{font-size:26px;width:34px;text-align:center}
-.card .tx{flex:1}
-.card .tx b{display:block;font-size:15px}
-.card .tx small{display:block;color:var(--muted);font-size:14px;margin-top:3px}
-.card.ok{border-color:rgba(245,158,11,.65);box-shadow:0 0 0 1px rgba(245,158,11,.2),0 8px 28px rgba(245,158,11,.15)}
-.card select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px}
-.chev{color:var(--muted);font-size:20px}
-.stepper{display:flex;gap:8px}
-.stepper button{width:40px;height:40px;border-radius:12px;border:1px solid var(--stroke);
-  background:rgba(255,255,255,.08);color:#fff;font-size:22px}
-.prog{display:block}
-.prog .top{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;margin-bottom:12px}
-.prog .pct{font-variant-numeric:tabular-nums;color:var(--a1)}
-.track{height:12px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
-.fill{height:100%;width:0;border-radius:99px;transition:width .35s ease,background .4s;
-  background:linear-gradient(90deg,var(--a1),var(--a2));position:relative;overflow:hidden}
-.running .fill::after{content:"";position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
-  animation:sh 1.2s infinite}
-@keyframes sh{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
-.done .fill{background:var(--ok);box-shadow:0 0 14px rgba(34,197,94,.6)}
-.done .pct,.done .top span:first-child{color:var(--ok)}
-.err .fill{background:#ef4444}.err .top span:first-child{color:#ef4444}
-.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:10px}
-.btn{width:100%;border:0;border-radius:20px;padding:18px;font-size:17px;font-weight:700;color:#fff;margin-top:6px;
-  background:linear-gradient(90deg,var(--a1),var(--a2));box-shadow:0 8px 26px rgba(245,158,11,.3)}
-.btn:active{transform:scale(.98)}
-.btn:disabled{opacity:.4;box-shadow:none}
-.btn.again{background:var(--glass);border:1px solid var(--stroke);box-shadow:none}
-.hint{text-align:center;color:var(--muted);font-size:13px;margin-top:14px;line-height:1.5}
+
+/* =========================================================
+   RANDOMIZER PRO
+   BLACK / ORANGE PREMIUM
+   BY CAMARA
+   ========================================================= */
+
+:root{
+
+    --bg:#090909;
+    --bg2:#111111;
+    --card:#181818;
+    --card2:#1d1d1d;
+
+    --orange:#ff9f0a;
+    --orange2:#ff7a00;
+
+    --text:#ffffff;
+    --text2:#b5b5b5;
+    --text3:#777777;
+
+    --border:rgba(255,255,255,.10);
+    --border-orange:rgba(255,159,10,.55);
+
+    --green:#30d158;
+    --red:#ff453a;
+
+    --radius:22px;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html{
+    width:100%;
+    min-height:100%;
+    background:var(--bg);
+}
+
+body{
+
+    margin:0;
+
+    width:100%;
+    min-height:100vh;
+
+    color:var(--text);
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    background:
+
+        radial-gradient(
+            circle at 50% -10%,
+            rgba(255,159,10,.12),
+            transparent 42%
+        ),
+
+        linear-gradient(
+            180deg,
+            #0d0d0d 0%,
+            #090909 100%
+        );
+
+    padding:
+
+        calc(env(safe-area-inset-top) + 22px)
+        18px
+        calc(env(safe-area-inset-bottom) + 28px);
+
+    overflow-x:hidden;
+}
+
+/* =========================================================
+   APP
+   ========================================================= */
+
+.app{
+
+    width:100%;
+    max-width:620px;
+
+    margin:0 auto;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.header{
+
+    text-align:center;
+
+    margin-bottom:34px;
+}
+
+.brand{
+
+    margin:0;
+
+    font-size:34px;
+
+    font-weight:800;
+
+    letter-spacing:-1.5px;
+
+    line-height:1.1;
+}
+
+.brand .pro{
+
+    color:var(--orange);
+}
+
+.tagline{
+
+    margin-top:9px;
+
+    color:#777;
+
+    font-size:11px;
+
+    font-weight:600;
+
+    letter-spacing:2.2px;
+
+    text-transform:uppercase;
+}
+
+/* petite ligne décorative */
+
+.header-line{
+
+    width:42px;
+    height:3px;
+
+    margin:17px auto 0;
+
+    border-radius:10px;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--orange),
+            var(--orange2)
+        );
+}
+
+/* =========================================================
+   SECTION
+   ========================================================= */
+
+.section-title{
+
+    margin:
+
+        0
+        0
+        12px
+        5px;
+
+    color:var(--orange);
+
+    font-size:11px;
+
+    font-weight:800;
+
+    letter-spacing:1.8px;
+
+    text-transform:uppercase;
+}
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+
+.card{
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    width:100%;
+
+    min-height:92px;
+
+    padding:17px 18px;
+
+    margin-bottom:12px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.075),
+            rgba(255,255,255,.035)
+        );
+
+    border:
+
+        1px solid
+        var(--border);
+
+    border-radius:var(--radius);
+
+    color:white;
+
+    text-align:left;
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,.25);
+
+    -webkit-backdrop-filter:blur(20px);
+    backdrop-filter:blur(20px);
+
+    transition:
+
+        transform .15s ease,
+        border-color .2s ease,
+        background .2s ease;
+}
+
+.card:active{
+
+    transform:scale(.985);
+
+    background:
+        rgba(255,255,255,.09);
+}
+
+.card.ok{
+
+    border-color:var(--border-orange);
+
+    box-shadow:
+        0 0 0 1px
+        rgba(255,159,10,.08),
+
+        0 10px 30px
+        rgba(255,159,10,.08);
+}
+
+/* =========================================================
+   ICON
+   ========================================================= */
+
+.card .ic{
+
+    width:38px;
+
+    min-width:38px;
+
+    text-align:center;
+
+    font-size:27px;
+
+    filter:saturate(.9);
+}
+
+/* =========================================================
+   TEXT
+   ========================================================= */
+
+.card .tx{
+
+    flex:1;
+
+    min-width:0;
+}
+
+.card .tx b{
+
+    display:block;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    letter-spacing:-.2px;
+}
+
+.card .tx small{
+
+    display:block;
+
+    margin-top:5px;
+
+    color:var(--text2);
+
+    font-size:14px;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+}
+
+/* =========================================================
+   CHEVRON
+   ========================================================= */
+
+.chev{
+
+    color:#777;
+
+    font-size:27px;
+
+    font-weight:300;
+
+    line-height:1;
+}
+
+/* =========================================================
+   SELECT
+   ========================================================= */
+
+.card select{
+
+    position:absolute;
+
+    inset:0;
+
+    width:100%;
+    height:100%;
+
+    opacity:0;
+
+    font-size:16px;
+}
+
+/* =========================================================
+   STEPPER
+   ========================================================= */
+
+.stepper{
+
+    display:flex;
+
+    gap:9px;
+}
+
+.stepper button{
+
+    width:48px;
+    height:48px;
+
+    border:0;
+
+    border-radius:15px;
+
+    background:
+        rgba(255,255,255,.09);
+
+    color:white;
+
+    font-size:25px;
+
+    font-weight:400;
+
+    line-height:1;
+
+    transition:.15s ease;
+}
+
+.stepper button:active{
+
+    transform:scale(.92);
+
+    background:
+        rgba(255,159,10,.20);
+
+    color:var(--orange);
+}
+
+/* =========================================================
+   PROGRESS CARD
+   ========================================================= */
+
+.prog{
+
+    display:block;
+
+    padding:20px 18px 19px;
+
+    margin-top:24px;
+}
+
+/* =========================================================
+   PROGRESS TOP
+   ========================================================= */
+
+.prog .top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:15px;
+
+    font-size:16px;
+
+    font-weight:700;
+}
+
+.prog .pct{
+
+    color:var(--orange);
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+/* =========================================================
+   TRACK
+   ========================================================= */
+
+.track{
+
+    width:100%;
+
+    height:11px;
+
+    border-radius:99px;
+
+    overflow:hidden;
+
+    background:
+        rgba(255,255,255,.10);
+}
+
+.fill{
+
+    height:100%;
+
+    width:0;
+
+    border-radius:99px;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--orange2),
+            var(--orange)
+        );
+
+    box-shadow:
+        0 0 12px
+        rgba(255,159,10,.30);
+
+    transition:
+        width .35s ease,
+        background .4s ease;
+
+    position:relative;
+
+    overflow:hidden;
+}
+
+/* =========================================================
+   RUNNING SHINE
+   ========================================================= */
+
+.running .fill::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,.38),
+            transparent
+        );
+
+    animation:
+        progressShine 1.2s infinite;
+}
+
+@keyframes progressShine{
+
+    from{
+        transform:translateX(-100%);
+    }
+
+    to{
+        transform:translateX(100%);
+    }
+}
+
+/* =========================================================
+   DONE
+   ========================================================= */
+
+.done .fill{
+
+    background:var(--green);
+
+    box-shadow:
+        0 0 14px
+        rgba(48,209,88,.45);
+}
+
+.done .pct,
+.done .top span:first-child{
+
+    color:var(--green);
+}
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.err .fill{
+
+    background:var(--red);
+}
+
+.err .top span:first-child{
+
+    color:var(--red);
+}
+
+/* =========================================================
+   META
+   ========================================================= */
+
+.meta{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-top:11px;
+
+    color:#777;
+
+    font-size:13px;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+/* =========================================================
+   MAIN BUTTON
+   ========================================================= */
+
+.btn{
+
+    width:100%;
+
+    margin-top:14px;
+
+    padding:18px 20px;
+
+    border:0;
+
+    border-radius:20px;
+
+    color:#080808;
+
+    font-size:17px;
+
+    font-weight:800;
+
+    letter-spacing:-.2px;
+
+    background:
+
+        linear-gradient(
+            100deg,
+            #ffb000,
+            #ff8500
+        );
+
+    box-shadow:
+
+        0 9px 28px
+        rgba(255,145,0,.22);
+
+    transition:
+
+        transform .15s ease,
+        opacity .2s ease,
+        box-shadow .2s ease;
+}
+
+.btn:active{
+
+    transform:scale(.975);
+}
+
+.btn:disabled{
+
+    opacity:.35;
+
+    box-shadow:none;
+}
+
+.btn.again{
+
+    color:white;
+
+    background:
+
+        rgba(255,255,255,.07);
+
+    border:
+
+        1px solid
+        rgba(255,255,255,.12);
+
+    box-shadow:none;
+}
+
+/* =========================================================
+   HINT
+   ========================================================= */
+
+.hint{
+
+    min-height:20px;
+
+    margin-top:14px;
+
+    color:#777;
+
+    font-size:12px;
+
+    line-height:1.5;
+
+    text-align:center;
+}
+
+.hint b{
+
+    color:#aaa;
+}
+
+/* =========================================================
+   FOOTER / BRAND
+   ========================================================= */
+
+.footer{
+
+    margin-top:34px;
+
+    padding-top:20px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,.07);
+
+    text-align:center;
+}
+
+.footer .by{
+
+    color:#555;
+
+    font-size:10px;
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+}
+
+.footer .author{
+
+    display:block;
+
+    margin-top:6px;
+
+    color:#888;
+
+    font-size:12px;
+
+    text-decoration:none;
+}
+
+.footer .author strong{
+
+    color:var(--orange);
+
+    font-weight:700;
+}
+
+.footer .telegram{
+
+    display:inline-block;
+
+    margin-top:10px;
+
+    padding:6px 12px;
+
+    border-radius:20px;
+
+    color:#999;
+
+    background:
+        rgba(255,255,255,.045);
+
+    border:
+        1px solid
+        rgba(255,255,255,.07);
+
+    font-size:11px;
+
+    text-decoration:none;
+
+    transition:.2s ease;
+}
+
+.footer .telegram:active{
+
+    color:var(--orange);
+
+    border-color:
+        rgba(255,159,10,.35);
+}
+
+/* =========================================================
+   SMALL IPHONE
+   ========================================================= */
+
+@media(max-width:380px){
+
+    body{
+
+        padding-left:14px;
+        padding-right:14px;
+    }
+
+    .brand{
+
+        font-size:30px;
+    }
+
+    .card{
+
+        min-height:88px;
+
+        padding:15px;
+    }
+
+    .card .tx b{
+
+        font-size:15px;
+    }
+
+    .card .tx small{
+
+        font-size:13px;
+    }
+
+    .stepper button{
+
+        width:43px;
+        height:43px;
+    }
+}
+
+/* =========================================================
+   PWA / STANDALONE
+   ========================================================= */
+
+@media(display-mode:standalone){
+
+    body{
+
+        padding-top:
+            calc(env(safe-area-inset-top) + 18px);
+    }
+
+    .header{
+
+        margin-bottom:30px;
+    }
+}
+
 </style>
 </head>
+
+
 <body>
-<h1>🎲 Randomizer <span>Pro</span></h1>
-<div class="sub">Stealth EXIF • Neural Obfusc.</div>
 
-<div class="label">CONFIGURATION DU LOT</div>
+<div class="app">
 
-<button class="card" id="pick">
-  <span class="ic">🗂️</span>
-  <span class="tx"><b>Dossier de base</b><small id="fsub">Appuie pour choisir</small></span>
-  <span class="chev">›</span>
-</button>
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
 
-<div class="card">
-  <span class="ic">📱</span>
-  <span class="tx"><b>Modèle source</b><small id="msub">iPhone 11 à 15 (Mix)</small></span>
-  <span class="chev">›</span>
-  <select id="model">
-    <option value="Mix">iPhone 11 à 15 (Mix)</option>
-    <option>iPhone 11</option><option>iPhone 12</option><option>iPhone 13</option>
-    <option>iPhone 14</option><option>iPhone 15</option>
-  </select>
+    <header class="header">
+
+        <h1 class="brand">
+            Randomizer<span class="pro"> Pro</span>
+        </h1>
+
+        <div class="tagline">
+            Photo Processing · EXIF
+        </div>
+
+        <div class="header-line"></div>
+
+    </header>
+
+
+    <!-- =====================================================
+         CONFIGURATION
+         ===================================================== -->
+
+    <div class="section-title">
+        Configuration du lot
+    </div>
+
+
+    <!-- DOSSIER -->
+
+    <button class="card" id="pick">
+
+        <span class="ic">📁</span>
+
+        <span class="tx">
+
+            <b>Dossier de base</b>
+
+            <small id="fsub">
+                Appuie pour choisir
+            </small>
+
+        </span>
+
+        <span class="chev">
+            ›
+        </span>
+
+    </button>
+
+
+    <!-- MODELE -->
+
+    <div class="card">
+
+        <span class="ic">📱</span>
+
+        <span class="tx">
+
+            <b>Modèle source</b>
+
+            <small id="msub">
+                iPhone 11 à 15 (Mix)
+            </small>
+
+        </span>
+
+        <span class="chev">
+            ›
+        </span>
+
+        <select id="model">
+
+            <option value="Mix">
+                iPhone 11 à 15 (Mix)
+            </option>
+
+            <option>iPhone 11</option>
+            <option>iPhone 12</option>
+            <option>iPhone 13</option>
+            <option>iPhone 14</option>
+            <option>iPhone 15</option>
+
+        </select>
+
+    </div>
+
+
+    <!-- DOSSIERS CIBLES -->
+
+    <div class="card">
+
+        <span class="ic">🗂️</span>
+
+        <span class="tx">
+
+            <b>Dossiers cibles</b>
+
+            <small id="nsub">
+                10 Dossiers / 0 Fichiers
+            </small>
+
+        </span>
+
+
+        <span class="stepper">
+
+            <button
+                type="button"
+                onclick="step(-1)">
+                −
+            </button>
+
+            <button
+                type="button"
+                onclick="step(1)">
+                +
+            </button>
+
+        </span>
+
+    </div>
+
+
+    <!-- =====================================================
+         PROGRESSION
+         ===================================================== -->
+
+    <div class="card prog" id="prog">
+
+        <div class="top">
+
+            <span id="ptitle">
+                En attente
+            </span>
+
+            <span class="pct" id="pct">
+                0%
+            </span>
+
+        </div>
+
+
+        <div class="track">
+
+            <div
+                class="fill"
+                id="fill">
+            </div>
+
+        </div>
+
+
+        <div class="meta">
+
+            <span id="cnt">
+                0 / 0
+            </span>
+
+            <span id="time">
+                00:00
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ACTION
+         ===================================================== -->
+
+    <button
+        class="btn"
+        id="go"
+        disabled>
+
+        ✨ Lancer la randomisation
+
+    </button>
+
+
+    <div
+        class="hint"
+        id="hint">
+    </div>
+
+
+    <!-- =====================================================
+         SIGNATURE
+         ===================================================== -->
+
+    <footer class="footer">
+
+        <div class="by">
+            Designed & developed by
+        </div>
+
+        <span class="author">
+            <strong>CAMARA</strong>
+        </span>
+
+        <a
+            class="telegram"
+            href="tg://resolve?domain=Marc_Camara">
+
+            Telegram · @Marc_Camara
+
+        </a>
+
+    </footer>
+
 </div>
 
-<div class="card">
-  <span class="ic">📁</span>
-  <span class="tx"><b>Dossiers cibles</b><small id="nsub">10 Dossiers / 0 Fichiers</small></span>
-  <span class="stepper"><button onclick="step(-1)">−</button><button onclick="step(1)">+</button></span>
-</div>
-
-<div class="card prog" id="prog">
-  <div class="top"><span id="ptitle">En attente</span><span class="pct" id="pct">0%</span></div>
-  <div class="track"><div class="fill" id="fill"></div></div>
-  <div class="meta"><span id="cnt">0 / 0</span><span id="time">00:00</span></div>
-</div>
-
-<button class="btn" id="go" disabled>✨ Lancer la randomisation</button>
-<div class="hint" id="hint"></div>
 
 <script>
-let n=10, count=0, hasBase=false, wasRunning=false, t0=0, tick=null;
-const $=id=>document.getElementById(id);
-const api=(p,m='GET')=>fetch(p,{method:m}).then(r=>r.json());
-const mm=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0');
 
-function step(d){n=Math.min(50,Math.max(1,n+d));upd()}
-function upd(){$('nsub').textContent=n+" Dossiers / "+(n*count)+" Fichiers"}
-$('model').onchange=()=>{$('msub').textContent=$('model').selectedOptions[0].text};
-$('pick').onclick=()=>api('/pick','POST');
+/* =========================================================
+   RANDOMIZER PRO
+   ORIGINAL LOGIC — CONSERVÉE
+   ========================================================= */
+
+let n = 10,
+    count = 0,
+    hasBase = false,
+    wasRunning = false,
+    t0 = 0,
+    tick = null;
+
+const $ = id =>
+    document.getElementById(id);
+
+const api = (p, m = 'GET') =>
+    fetch(p, {
+        method:m
+    }).then(r => r.json());
+
+const mm = s =>
+    String(
+        Math.floor(s / 60)
+    ).padStart(2,'0')
+    +
+    ':'
+    +
+    String(
+        Math.floor(s % 60)
+    ).padStart(2,'0');
+
+
+/* =========================================================
+   STEPPER
+   ========================================================= */
+
+function step(d){
+
+    n = Math.min(
+        50,
+        Math.max(
+            1,
+            n + d
+        )
+    );
+
+    upd();
+}
+
+
+/* =========================================================
+   UPDATE
+   ========================================================= */
+
+function upd(){
+
+    $('nsub').textContent =
+        n +
+        " Dossiers / " +
+        (n * count) +
+        " Fichiers";
+}
+
+
+/* =========================================================
+   MODEL
+   ========================================================= */
+
+$('model').onchange = () => {
+
+    $('msub').textContent =
+        $('model')
+        .selectedOptions[0]
+        .text;
+};
+
+
+/* =========================================================
+   PICK
+   ========================================================= */
+
+$('pick').onclick = () =>
+    api('/pick','POST');
+
+
+/* =========================================================
+   PROGRESS
+   ========================================================= */
 
 function setProg(cls,title,pct){
-  $('prog').className='card prog '+cls;
-  $('ptitle').textContent=title;
-  $('pct').textContent=Math.round(pct)+'%';
-  $('fill').style.width=pct+'%';
+
+    $('prog').className =
+        'card prog ' + cls;
+
+    $('ptitle').textContent =
+        title;
+
+    $('pct').textContent =
+        Math.round(pct) + '%';
+
+    $('fill').style.width =
+        pct + '%';
 }
+
+
+/* =========================================================
+   REFRESH STATE
+   ========================================================= */
 
 async function refresh(){
-  const s=await api('/state');
-  if(s.dbg) $('hint').textContent = s.dbg;
-  if(s.base){
-    hasBase=true; count=s.count;
-    $('fsub').textContent=s.name+" • "+s.count+" photo(s)";
-    $('pick').classList.add('ok'); upd();
-  }
-  if(s.running){
-    if(!wasRunning){wasRunning=true;t0=Date.now()}
-    const pct=s.total?s.done*100/s.total:0;
-    setProg('running','Traitement en cours…',pct);
-    $('cnt').textContent=s.done+" / "+s.total;
-    $('time').textContent=mm((Date.now()-t0)/1000);
-    $('go').disabled=true;
-  } else {
-    if(s.finished&&wasRunning){
-      wasRunning=false;
-      if(s.error){setProg('err','Erreur',0);$('hint').textContent=s.error}
-      else{
-        setProg('done','Traitement terminé avec succès',100);
-        $('cnt').textContent=s.total+" / "+s.total;
-        $('hint').innerHTML="Résultat dans <b>"+s.name+" › photos_traitees</b>";
-        $('go').textContent="🔄 Relancer une randomisation";
-        $('go').classList.add('again');
-      }
-    }
-    $('go').disabled=!(hasBase&&count>0);
-    if(hasBase&&count===0)$('hint').textContent="Aucune image JPG/PNG dans ce dossier";
-  }
-}
-setInterval(refresh,600);refresh();
 
-$('go').onclick=async()=>{
-  $('hint').textContent="";
-  $('go').classList.remove('again');$('go').textContent="✨ Lancer la randomisation";
-  setProg('running','Démarrage…',0);
-  $('go').disabled=true;wasRunning=true;t0=Date.now();
-  await api('/run?n='+n+'&model='+encodeURIComponent($('model').value),'POST');
+    const s = await api('/state');
+
+    if(s.dbg){
+
+        $('hint').textContent =
+            s.dbg;
+    }
+
+
+    if(s.base){
+
+        hasBase = true;
+
+        count = s.count;
+
+        $('fsub').textContent =
+            s.name +
+            " • " +
+            s.count +
+            " photo(s)";
+
+        $('pick')
+            .classList
+            .add('ok');
+
+        upd();
+    }
+
+
+    if(s.running){
+
+        if(!wasRunning){
+
+            wasRunning = true;
+
+            t0 = Date.now();
+        }
+
+        const pct =
+            s.total
+                ? s.done * 100 / s.total
+                : 0;
+
+        setProg(
+            'running',
+            'Traitement en cours…',
+            pct
+        );
+
+        $('cnt').textContent =
+            s.done +
+            " / " +
+            s.total;
+
+        $('time').textContent =
+            mm(
+                (Date.now() - t0) / 1000
+            );
+
+        $('go').disabled = true;
+
+    }else{
+
+        if(
+            s.finished &&
+            wasRunning
+        ){
+
+            wasRunning = false;
+
+
+            if(s.error){
+
+                setProg(
+                    'err',
+                    'Erreur',
+                    0
+                );
+
+                $('hint').textContent =
+                    s.error;
+
+            }else{
+
+                setProg(
+                    'done',
+                    'Traitement terminé avec succès',
+                    100
+                );
+
+                $('cnt').textContent =
+                    s.total +
+                    " / " +
+                    s.total;
+
+                $('hint').innerHTML =
+                    "Résultat dans <b>" +
+                    s.name +
+                    " › photos_traitees</b>";
+
+                $('go').textContent =
+                    "🔄 Relancer une randomisation";
+
+                $('go')
+                    .classList
+                    .add('again');
+            }
+        }
+
+
+        $('go').disabled =
+            !(hasBase && count > 0);
+
+
+        if(
+            hasBase &&
+            count === 0
+        ){
+
+            $('hint').textContent =
+                "Aucune image JPG/PNG dans ce dossier";
+        }
+    }
+}
+
+
+/* =========================================================
+   AUTO REFRESH
+   ========================================================= */
+
+setInterval(
+    refresh,
+    600
+);
+
+refresh();
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+$('go').onclick = async () => {
+
+    $('hint').textContent = "";
+
+    $('go')
+        .classList
+        .remove('again');
+
+    $('go').textContent =
+        "✨ Lancer la randomisation";
+
+    setProg(
+        'running',
+        'Démarrage…',
+        0
+    );
+
+    $('go').disabled = true;
+
+    wasRunning = true;
+
+    t0 = Date.now();
+
+    await api(
+        '/run?n=' +
+        n +
+        '&model=' +
+        encodeURIComponent(
+            $('model').value
+        ),
+        'POST'
+    );
 };
+
 </script>
+
 </body>
 </html>
