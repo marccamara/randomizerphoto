@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
-:root{--bg1:#07080f;--bg2:#12142a;--a1:#3b82f6;--a2:#6366f1;--ok:#22c55e;
-  --glass:rgba(255,255,255,.06);--stroke:rgba(255,255,255,.12);--muted:#8a90a8}
+:root{--bg1:#121212;--bg2:#181818;--a1:#f59e0b;--a2:#d97706;--ok:#22c55e;
+  --glass:#1e1e1e;--stroke:#333333;--muted:#9ca3af}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;min-height:100vh;color:#fff;
   font-family:-apple-system,"SF Pro Display",Helvetica,sans-serif;
-  background:radial-gradient(circle at 20% 0%,rgba(99,102,241,.28),transparent 55%),
+  background:radial-gradient(circle at 20% 0%,rgba(245,158,11,.08),transparent 55%),
              linear-gradient(170deg,var(--bg2),var(--bg1) 60%);
   background-attachment:fixed;
   padding:calc(env(safe-area-inset-top) + 26px) 20px calc(env(safe-area-inset-bottom) + 30px)}
 h1{margin:0;text-align:center;font-size:30px;font-weight:800;letter-spacing:-.5px}
-h1 span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;color:transparent}
+h1 span{color:var(--a1)}
 .sub{text-align:center;color:var(--muted);font:12px ui-monospace,Menlo,monospace;margin:8px 0 26px;letter-spacing:.5px}
 .label{color:var(--a1);font-size:12px;font-weight:700;letter-spacing:1.2px;margin:0 0 10px 4px}
 .card{position:relative;display:flex;align-items:center;gap:14px;width:100%;padding:16px 18px;margin-bottom:12px;
@@ -24,7 +24,7 @@ h1 span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background
 .card .tx{flex:1}
 .card .tx b{display:block;font-size:15px}
 .card .tx small{display:block;color:var(--muted);font-size:14px;margin-top:3px}
-.card.ok{border-color:rgba(59,130,246,.65);box-shadow:0 0 0 1px rgba(59,130,246,.2),0 8px 28px rgba(59,130,246,.15)}
+.card.ok{border-color:rgba(245,158,11,.65);box-shadow:0 0 0 1px rgba(245,158,11,.2),0 8px 28px rgba(245,158,11,.15)}
 .card select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px}
 .chev{color:var(--muted);font-size:20px}
 .stepper{display:flex;gap:8px}
@@ -45,7 +45,7 @@ h1 span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background
 .err .fill{background:#ef4444}.err .top span:first-child{color:#ef4444}
 .meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:10px}
 .btn{width:100%;border:0;border-radius:20px;padding:18px;font-size:17px;font-weight:700;color:#fff;margin-top:6px;
-  background:linear-gradient(90deg,var(--a1),var(--a2));box-shadow:0 8px 26px rgba(99,102,241,.5)}
+  background:linear-gradient(90deg,var(--a1),var(--a2));box-shadow:0 8px 26px rgba(245,158,11,.3)}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.4;box-shadow:none}
 .btn.again{background:var(--glass);border:1px solid var(--stroke);box-shadow:none}
