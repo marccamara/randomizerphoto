@@ -1,0 +1,20 @@
+[tool.briefcase]
+project_name = "RandomizerPhoto"
+bundle = "com.perso"
+version = "0.0.1"
+
+[tool.briefcase.app.randomizerphoto]
+formal_name = "RandomizerPhoto"
+description = "Randomizer photo"
+sources = ["src/randomizerphoto"]
+requires = ["numpy", "pillow", "piexif"]
+
+[tool.briefcase.app.randomizerphoto.iOS]
+requires = ["toga-iOS~=0.5", "numpy", "pillow", "piexif"]
+
+[tool.briefcase.app.randomizerphoto.iOS.info]
+UIFileSharingEnabled = true
+LSSupportsOpeningDocumentsInPlace = true
+
+[tool.briefcase.app.randomizerphoto.iOS.info.NSAppTransportSecurity]
+NSAllowsLocalNetworking = true
