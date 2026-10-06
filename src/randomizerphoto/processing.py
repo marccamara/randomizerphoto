@@ -1,17 +1,47 @@
+import datetime
+import json
 import os
 import random
-import json
-import datetime
 import numpy as np
-from PIL import Image, ImageEnhance, ImageOps
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 import piexif
 
 IPHONE_MODELS = [
-    {"make": "Apple", "model": "iPhone 11", "software": "16.5", "focal": (26, 1), "fnum": (18, 10)},
-    {"make": "Apple", "model": "iPhone 12", "software": "17.1.1", "focal": (26, 1), "fnum": (16, 10)},
-    {"make": "Apple", "model": "iPhone 13", "software": "17.4", "focal": (26, 1), "fnum": (16, 10)},
-    {"make": "Apple", "model": "iPhone 14", "software": "17.5.1", "focal": (26, 1), "fnum": (15, 10)},
-    {"make": "Apple", "model": "iPhone 15", "software": "17.6", "focal": (24, 1), "fnum": (16, 10)},
+    {
+        "make": "Apple",
+        "model": "iPhone 11",
+        "software": "16.5",
+        "focal": (26, 1),
+        "fnum": (18, 10),
+    },
+    {
+        "make": "Apple",
+        "model": "iPhone 12",
+        "software": "17.1.1",
+        "focal": (26, 1),
+        "fnum": (16, 10),
+    },
+    {
+        "make": "Apple",
+        "model": "iPhone 13",
+        "software": "17.4",
+        "focal": (26, 1),
+        "fnum": (16, 10),
+    },
+    {
+        "make": "Apple",
+        "model": "iPhone 14",
+        "software": "17.5.1",
+        "focal": (26, 1),
+        "fnum": (15, 10),
+    },
+    {
+        "make": "Apple",
+        "model": "iPhone 15",
+        "software": "17.6",
+        "focal": (24, 1),
+        "fnum": (16, 10),
+    },
 ]
 
 
@@ -45,7 +75,9 @@ def generate_iphone_exif(model_name=None):
     device = random.choice(pool)
 
     now = datetime.datetime.now()
-    d = now - datetime.timedelta(days=random.randint(1, 30), seconds=random.randint(0, 86400))
+    d = now - datetime.timedelta(
+        days=random.randint(1, 30), seconds=random.randint(0, 86400)
+    )
     date_str = d.strftime("%Y:%m:%d %H:%M:%S")
 
     zeroth = {
@@ -68,9 +100,13 @@ def generate_iphone_exif(model_name=None):
         piexif.ExifIFD.FocalLength: device["focal"],
         piexif.ExifIFD.FNumber: device["fnum"],
         piexif.ExifIFD.ISOSpeedRatings: random.choice([50, 64, 80, 100, 125, 160]),
-        piexif.ExifIFD.LensModel: f"{device['model']} back camera 5.96mm f/{device['fnum'][0]/10}",
+        piexif.ExifIFD.LensModel: (
+            f"{device['model']} back camera 5.96mm f/{device['fnum'][0]/10}"
+        ),
     }
-    return piexif.dump({"0th": zeroth, "Exif": exif, "1st": {}, "GPS": {}, "Interop": {}})
+    return piexif.dump(
+        {"0th": zeroth, "Exif": exif, "1st": {}, "GPS": {}, "Interop": {}}
+    )
 
 
 def add_gaussian_noise_and_steganography(img, magnitude=2.5):
@@ -79,6 +115,16 @@ def add_gaussian_noise_and_steganography(img, magnitude=2.5):
     shifts = np.random.choice([-1, 0, 1], size=arr.shape, p=[0.1, 0.8, 0.1])
     arr = arr + shifts
     return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
+
+
+def make_synthid_proof(img):
+    """Manipulation de la couleur/luminosité (équivalent HSV) et micro-flou gaussien pour casser les filigranes invisibles."""
+    img = ImageEnhance.Color(img).enhance(random.uniform(0.95, 1.05))
+    img = ImageEnhance.Brightness(img).enhance(random.uniform(0.95, 1.05))
+
+    if random.random() < 0.8:
+        img = img.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.3, 0.6)))
+    return img
 
 
 def dynamic_crop_to_ratio(img, target_ratio=(3, 4)):
@@ -99,20 +145,42 @@ def process_single_image(img, output_path, target_width=1080, model=None):
     if random.random() < 0.15:
         img = ImageOps.mirror(img)
     img = dynamic_crop_to_ratio(img, (3, 4))
-    img = img.resize((target_width, int(target_width * 4 / 3)), Image.Resampling.LANCZOS)
+    img = img.resize(
+        (target_width, int(target_width * 4 / 3)), Image.Resampling.LANCZOS
+    )
     img = img.copy()
-    img = img.rotate(random.uniform(-0.5, 0.5), resample=Image.BICUBIC, expand=False)
+    img = img.rotate(
+        random.uniform(-0.5, 0.5), resample=Image.BICUBIC, expand=False
+    )
     img = ImageEnhance.Brightness(img).enhance(random.uniform(0.97, 1.03))
     img = ImageEnhance.Contrast(img).enhance(random.uniform(0.97, 1.03))
     img = ImageEnhance.Color(img).enhance(random.uniform(0.98, 1.02))
-    img = add_gaussian_noise_and_steganography(img, random.uniform(1.8, 3.2))
-    img.save(output_path, format="JPEG", quality=random.randint(92, 96),
-             optimize=True, exif=generate_iphone_exif(model))
+
+    # Ajout de l'armure anti-SynthID
+    img = make_synthid_proof(img)
+
+    # Renforcement du bruit gaussien (magnitude 2.5 - 4.2)
+    img = add_gaussian_noise_and_steganography(img, random.uniform(2.5, 4.2))
+
+    # Compression JPEG optimisée (qualité entre 86 et 92)
+    img.save(
+        output_path,
+        format="JPEG",
+        quality=random.randint(86, 92),
+        optimize=True,
+        exif=generate_iphone_exif(model),
+    )
 
 
-def process_folder_advanced(input_folder, output_base_folder, num_folders=10,
-                            history_path="used_file_names.json", progress=None, model=None):
-    exts = ('.jpg', '.jpeg', '.png', '.webp')
+def process_folder_advanced(
+    input_folder,
+    output_base_folder,
+    num_folders=10,
+    history_path="used_file_names.json",
+    progress=None,
+    model=None,
+):
+    exts = (".jpg", ".jpeg", ".png", ".webp")
     files = [f for f in os.listdir(input_folder) if f.lower().endswith(exts)]
     if not files:
         return
