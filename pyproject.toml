@@ -2,6 +2,7 @@
 project_name = "RandomizerPhoto"
 bundle = "com.perso"
 version = "0.0.1"
+license.file = "LICENSE"
 
 [tool.briefcase.app.randomizerphoto]
 formal_name = "RandomizerPhoto"
