@@ -1,5 +1,7 @@
+import ctypes
 import json
 import threading
+import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
@@ -15,7 +17,7 @@ APP_DOCS = Path.home() / "Documents"          # historique des noms (interne à 
 HIST = APP_DOCS / "used_file_names.json"
 EXTS = (".jpg", ".jpeg", ".png", ".webp")
 
-STATE = {"base": None, "picking": False, "done": 0, "total": 0,
+STATE = {"base": None, "dbg": None, "picking": False, "done": 0, "total": 0,
          "running": False, "finished": False, "error": None}
 REFS = {}  # garde les objets natifs en vie
 
@@ -24,9 +26,13 @@ REFS = {}  # garde les objets natifs en vie
 class PickerDelegate(NSObject):
     @objc_method
     def documentPicker_didPickDocumentsAtURLs_(self, picker, urls):
-        url = urls[0]
-        url.startAccessingSecurityScopedResource()   # accès lecture/écriture
-        STATE["base"] = str(url.path)
+        try:
+            url = urls[0]
+            url.startAccessingSecurityScopedResource()
+            STATE["base"] = str(url.path)
+            STATE["dbg"] = None
+        except Exception:
+            STATE["dbg"] = traceback.format_exc()[-300:]
         STATE["picking"] = False
 
     @objc_method
@@ -35,13 +41,24 @@ class PickerDelegate(NSObject):
 
 
 def _present_picker(app):
-    Picker = ObjCClass("UIDocumentPickerViewController")
-    picker = Picker.alloc().initWithDocumentTypes(["public.folder"], inMode=1)  # 1 = Open
-    delegate = PickerDelegate.alloc().init()
-    REFS["delegate"] = delegate
-    picker.delegate = delegate
-    root = ObjCInstance(app.main_window._impl.native).rootViewController
-    root.presentViewController(picker, animated=True, completion=None)
+    try:
+        Picker = ObjCClass("UIDocumentPickerViewController")
+        try:
+            # API moderne (iOS 14+)
+            ctypes.CDLL("/System/Library/Frameworks/UniformTypeIdentifiers.framework/UniformTypeIdentifiers")
+            folder = ObjCClass("UTType").typeWithIdentifier("public.folder")
+            picker = Picker.alloc().initForOpeningContentTypes([folder])
+        except Exception:
+            # ancienne API
+            picker = Picker.alloc().initWithDocumentTypes(["public.folder"], inMode=1)
+        delegate = PickerDelegate.alloc().init()
+        REFS["delegate"] = delegate
+        picker.delegate = delegate
+        picker.allowsMultipleSelection = False
+        root = ObjCInstance(app.main_window._impl.native).rootViewController
+        root.presentViewController(picker, animated=True, completion=None)
+    except Exception:
+        STATE["dbg"] = traceback.format_exc()[-300:]
 
 
 # ---------- Traitement ----------
