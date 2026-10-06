@@ -1,0 +1,37 @@
+name: Build IPA
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install briefcase
+      - run: briefcase create iOS --no-input
+
+      - name: Compiler (appareil réel, non signé)
+        run: |
+          set -o pipefail
+          PROJ=$(find build -name "*.xcodeproj" | head -n 1)
+          SCHEME=$(basename "$PROJ" .xcodeproj)
+          echo "Projet: $PROJ / Scheme: $SCHEME"
+          xcodebuild -project "$PROJ" -scheme "$SCHEME" \
+            -sdk iphoneos -configuration Release \
+            -derivedDataPath dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Créer l'IPA
+        run: |
+          APP=$(find dd/Build/Products -name "*.app" -maxdepth 2 | head -n 1)
+          echo "App: $APP"
+          mkdir Payload && cp -r "$APP" Payload/
+          zip -qr RandomizerPhoto.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ipa
+          path: RandomizerPhoto.ipa
