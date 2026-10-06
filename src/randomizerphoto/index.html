@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg1:#07080f;--bg2:#12142a;--a1:#3b82f6;--a2:#6366f1;--ok:#22c55e;
+  --glass:rgba(255,255,255,.06);--stroke:rgba(255,255,255,.12);--muted:#8a90a8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;color:#fff;
+  font-family:-apple-system,"SF Pro Display",Helvetica,sans-serif;
+  background:radial-gradient(circle at 20% 0%,rgba(99,102,241,.28),transparent 55%),
+             linear-gradient(170deg,var(--bg2),var(--bg1) 60%);
+  background-attachment:fixed;
+  padding:calc(env(safe-area-inset-top) + 26px) 20px calc(env(safe-area-inset-bottom) + 30px)}
+h1{margin:0;text-align:center;font-size:30px;font-weight:800;letter-spacing:-.5px}
+h1 span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;color:transparent}
+.sub{text-align:center;color:var(--muted);font:12px ui-monospace,Menlo,monospace;margin:8px 0 26px;letter-spacing:.5px}
+.label{color:var(--a1);font-size:12px;font-weight:700;letter-spacing:1.2px;margin:0 0 10px 4px}
+.card{position:relative;display:flex;align-items:center;gap:14px;width:100%;padding:16px 18px;margin-bottom:12px;
+  background:var(--glass);border:1px solid var(--stroke);border-radius:20px;color:#fff;text-align:left;font-size:16px;
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.card .ic{font-size:26px;width:34px;text-align:center}
+.card .tx{flex:1}
+.card .tx b{display:block;font-size:15px}
+.card .tx small{display:block;color:var(--muted);font-size:14px;margin-top:3px}
+.card.ok{border-color:rgba(59,130,246,.65);box-shadow:0 0 0 1px rgba(59,130,246,.2),0 8px 28px rgba(59,130,246,.15)}
+.card select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px}
+.chev{color:var(--muted);font-size:20px}
+.stepper{display:flex;gap:8px}
+.stepper button{width:40px;height:40px;border-radius:12px;border:1px solid var(--stroke);
+  background:rgba(255,255,255,.08);color:#fff;font-size:22px}
+.prog{display:block}
+.prog .top{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;margin-bottom:12px}
+.prog .pct{font-variant-numeric:tabular-nums;color:var(--a1)}
+.track{height:12px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.fill{height:100%;width:0;border-radius:99px;transition:width .35s ease,background .4s;
+  background:linear-gradient(90deg,var(--a1),var(--a2));position:relative;overflow:hidden}
+.running .fill::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+  animation:sh 1.2s infinite}
+@keyframes sh{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.done .fill{background:var(--ok);box-shadow:0 0 14px rgba(34,197,94,.6)}
+.done .pct,.done .top span:first-child{color:var(--ok)}
+.err .fill{background:#ef4444}.err .top span:first-child{color:#ef4444}
+.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:10px}
+.btn{width:100%;border:0;border-radius:20px;padding:18px;font-size:17px;font-weight:700;color:#fff;margin-top:6px;
+  background:linear-gradient(90deg,var(--a1),var(--a2));box-shadow:0 8px 26px rgba(99,102,241,.5)}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4;box-shadow:none}
+.btn.again{background:var(--glass);border:1px solid var(--stroke);box-shadow:none}
+.hint{text-align:center;color:var(--muted);font-size:13px;margin-top:14px;line-height:1.5}
+</style>
+</head>
+<body>
+<h1>🎲 Randomizer <span>Pro</span></h1>
+<div class="sub">Stealth EXIF • Neural Obfusc.</div>
+
+<div class="label">CONFIGURATION DU LOT</div>
+
+<button class="card" id="pick">
+  <span class="ic">🗂️</span>
+  <span class="tx"><b>Dossier de base</b><small id="fsub">Appuie pour choisir</small></span>
+  <span class="chev">›</span>
+</button>
+
+<div class="card">
+  <span class="ic">📱</span>
+  <span class="tx"><b>Modèle source</b><small id="msub">iPhone 11 à 15 (Mix)</small></span>
+  <span class="chev">›</span>
+  <select id="model">
+    <option value="Mix">iPhone 11 à 15 (Mix)</option>
+    <option>iPhone 11</option><option>iPhone 12</option><option>iPhone 13</option>
+    <option>iPhone 14</option><option>iPhone 15</option>
+  </select>
+</div>
+
+<div class="card">
+  <span class="ic">📁</span>
+  <span class="tx"><b>Dossiers cibles</b><small id="nsub">10 Dossiers / 0 Fichiers</small></span>
+  <span class="stepper"><button onclick="step(-1)">−</button><button onclick="step(1)">+</button></span>
+</div>
+
+<div class="card prog" id="prog">
+  <div class="top"><span id="ptitle">En attente</span><span class="pct" id="pct">0%</span></div>
+  <div class="track"><div class="fill" id="fill"></div></div>
+  <div class="meta"><span id="cnt">0 / 0</span><span id="time">00:00</span></div>
+</div>
+
+<button class="btn" id="go" disabled>✨ Lancer la randomisation</button>
+<div class="hint" id="hint"></div>
+
+<script>
+let n=10, count=0, hasBase=false, wasRunning=false, t0=0, tick=null;
+const $=id=>document.getElementById(id);
+const api=(p,m='GET')=>fetch(p,{method:m}).then(r=>r.json());
+const mm=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0');
+
+function step(d){n=Math.min(50,Math.max(1,n+d));upd()}
+function upd(){$('nsub').textContent=n+" Dossiers / "+(n*count)+" Fichiers"}
+$('model').onchange=()=>{$('msub').textContent=$('model').selectedOptions[0].text};
+$('pick').onclick=()=>api('/pick','POST');
+
+function setProg(cls,title,pct){
+  $('prog').className='card prog '+cls;
+  $('ptitle').textContent=title;
+  $('pct').textContent=Math.round(pct)+'%';
+  $('fill').style.width=pct+'%';
+}
+
+async function refresh(){
+  const s=await api('/state');
+  if(s.base){
+    hasBase=true; count=s.count;
+    $('fsub').textContent=s.name+" • "+s.count+" photo(s)";
+    $('pick').classList.add('ok'); upd();
+  }
+  if(s.running){
+    if(!wasRunning){wasRunning=true;t0=Date.now()}
+    const pct=s.total?s.done*100/s.total:0;
+    setProg('running','Traitement en cours…',pct);
+    $('cnt').textContent=s.done+" / "+s.total;
+    $('time').textContent=mm((Date.now()-t0)/1000);
+    $('go').disabled=true;
+  } else {
+    if(s.finished&&wasRunning){
+      wasRunning=false;
+      if(s.error){setProg('err','Erreur',0);$('hint').textContent=s.error}
+      else{
+        setProg('done','Traitement terminé avec succès',100);
+        $('cnt').textContent=s.total+" / "+s.total;
+        $('hint').innerHTML="Résultat dans <b>"+s.name+" › photos_traitees</b>";
+        $('go').textContent="🔄 Relancer une randomisation";
+        $('go').classList.add('again');
+      }
+    }
+    $('go').disabled=!(hasBase&&count>0);
+    if(hasBase&&count===0)$('hint').textContent="Aucune image JPG/PNG dans ce dossier";
+  }
+}
+setInterval(refresh,600);refresh();
+
+$('go').onclick=async()=>{
+  $('hint').textContent="";
+  $('go').classList.remove('again');$('go').textContent="✨ Lancer la randomisation";
+  setProg('running','Démarrage…',0);
+  $('go').disabled=true;wasRunning=true;t0=Date.now();
+  await api('/run?n='+n+'&model='+encodeURIComponent($('model').value),'POST');
+};
+</script>
+</body>
+</html>
