@@ -12,16 +12,17 @@ jobs:
       - run: pip install briefcase
       - run: briefcase create iOS --no-input
 
-      - name: Compiler (appareil réel, non signé)
+      - name: Compiler (appareil réel, signature ad-hoc)
         run: |
           set -o pipefail
-          PROJ=$(find build -name "*.xcodeproj" | head -n 1)
+          PROJ=$(find build -name "*.xcodeproj" -not -path "*/Support/*" | head -n 1)
           SCHEME=$(basename "$PROJ" .xcodeproj)
           echo "Projet: $PROJ / Scheme: $SCHEME"
           xcodebuild -project "$PROJ" -scheme "$SCHEME" \
             -sdk iphoneos -configuration Release \
             -derivedDataPath dd \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="-" \
             build
 
       - name: Créer l'IPA
